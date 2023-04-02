@@ -38,6 +38,32 @@
                     "search": "| rest /services/apps/local | stats count by label, title",
                     "type": "singleSelectSplunkSearch",
                     "valueField": "title"
+                },
+                {
+                    "defaultValue": 0,
+                    "field": "del_prev",
+                    "help": "Delete dashboards created by the previous run of the search",
+                    "label": "Delete previous dashboards",
+                    "options": {
+                        "items": [
+                            {
+                                "label": "No",
+                                "value": 0
+                            },
+                            {
+                                "label": "Yes",
+                                "value": 1
+                            }
+                        ]
+                    },
+                    "type": "singleSelect"
+                },
+                {
+                    "field": "del_regex",
+                    "help": "Supports regular expressions",
+                    "label": "Delete dashboards with ID",
+                    "required": false,
+                    "type": "text"
                 }
             ],
             "label": "Generate dashboards",
