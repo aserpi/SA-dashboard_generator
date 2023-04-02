@@ -11,7 +11,7 @@
                 "IT Operations",
                 "Utility"
             ],
-            "developmentStatus": "Pre-Alpha"
+            "developmentStatus": "Production/Stable"
         },
         "description": "This add-on delivers an alert action that generates and schedules dashboards from search results.",
         "id": {
