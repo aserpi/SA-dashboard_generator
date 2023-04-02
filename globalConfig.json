@@ -48,6 +48,14 @@
                     "valueField": "title"
                 },
                 {
+                    "field": "permissions_template",
+                    "label": "Permissions template",
+                    "labelField": "title",
+                    "search": "| rest /services/sa_dashboard_generator_permissions_template",
+                    "type": "singleSelectSplunkSearch",
+                    "valueField": "title"
+                },
+                {
                     "defaultValue": 0,
                     "field": "del_prev",
                     "help": "Delete dashboards created by the previous run of the search",
@@ -82,6 +90,75 @@
         "configuration": {
             "description": "Set up your add-on",
             "tabs": [
+                {
+                    "entity": [
+                        {
+                            "field": "name",
+                            "help": "Enter a unique name for this template",
+                            "label": "Name",
+                            "required": true,
+                            "type": "text",
+                            "validators": [
+                                {
+                                    "errorMsg": "Characters of Name should start with alphanumeric and contain alphanumeric, space, dash, underscore or comma only",
+                                    "pattern": "^[0-9|a-z|A-Z][\\w\\- ,]*$",
+                                    "type": "regex"
+                                },
+                                {
+                                    "errorMsg": "Maximum length allowed for account name is 50",
+                                    "maxLength": 50,
+                                    "minLength": 1,
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        {
+                            "defaultValue": "nobody",
+                            "field": "owner_",
+                            "label": "Owner",
+                            "options": {
+                                "createSearchChoice": true,
+                                "endpointUrl": "authentication/users"
+                            },
+                            "type": "multipleSelect"
+                        },
+                        {
+                            "field": "perms_read",
+                            "help": "Use \"*\" for everyone.",
+                            "label": "Read",
+                            "options": {
+                                "createSearchChoice": true,
+                                "endpointUrl": "authorization/roles"
+                            },
+                            "type": "multipleSelect"
+                        },
+                        {
+                            "field": "perms_write",
+                            "help": "Use \"*\" for everyone.",
+                            "label": "Write",
+                            "options": {
+                                "createSearchChoice": true,
+                                "endpointUrl": "authorization/roles"
+                            },
+                            "type": "multipleSelect"
+                        }
+                    ],
+                    "name": "permissions_template",
+                    "table": {
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ],
+                        "header": [
+                            {
+                                "field": "name",
+                                "label": "Name"
+                            }
+                        ]
+                    },
+                    "title": "Permissions Template"
+                },
                 {
                     "entity": [
                         {
