@@ -1,0 +1,93 @@
+{
+    "meta": {
+        "displayName": "Dashboard Generator",
+        "name": "SA-dashboard_generator",
+        "restRoot": "sa_dashboard_generator",
+        "schemaVersion": "0.0.3",
+        "version": "0.1.0"
+    },
+    "alerts": [
+        {
+            "description": "Generate and schedule dashboards based on search results",
+            "entity": [
+                {
+                    "field": "src_app",
+                    "help": "App with the template dashboard",
+                    "label": "Source app",
+                    "labelField": "label",
+                    "required": true,
+                    "search": "| rest /services/apps/local | stats count by label, title",
+                    "type": "singleSelectSplunkSearch",
+                    "valueField": "title"
+                },
+                {
+                    "field": "template_dashboard_id",
+                    "label": "Template dashboard",
+                    "labelField": "label",
+                    "required": true,
+                    "search": "| rest /servicesNS/-/-/data/ui/views | stats count by label, title | eval label=label.&quot; (&quot;.title.&quot;)&quot;",
+                    "type": "singleSelectSplunkSearch",
+                    "valueField": "title"
+                },
+                {
+                    "field": "dest_app",
+                    "help": "App where the dashboards are created (defaults to source)",
+                    "label": "Destination app",
+                    "labelField": "label",
+                    "required": false,
+                    "search": "| rest /services/apps/local | stats count by label, title",
+                    "type": "singleSelectSplunkSearch",
+                    "valueField": "title"
+                }
+            ],
+            "label": "Generate dashboards",
+            "name": "generate_dashboards"
+        }
+    ],
+    "pages": {
+        "configuration": {
+            "description": "Set up your add-on",
+            "tabs": [
+                {
+                    "entity": [
+                        {
+                            "defaultValue": "INFO",
+                            "field": "loglevel",
+                            "label": "Log level",
+                            "options": {
+                                "autoCompleteFields": [
+                                    {
+                                        "label": "DEBUG",
+                                        "value": "DEBUG"
+                                    },
+                                    {
+                                        "label": "INFO",
+                                        "value": "INFO"
+                                    },
+                                    {
+                                        "label": "WARNING",
+                                        "value": "WARNING"
+                                    },
+                                    {
+                                        "label": "ERROR",
+                                        "value": "ERROR"
+                                    },
+                                    {
+                                        "label": "CRITICAL",
+                                        "value": "CRITICAL"
+                                    }
+                                ],
+                                "disableSearch": true
+                            },
+                            "required": true,
+                            "type": "singleSelect"
+                        }
+                    ],
+                    "name": "logging",
+                    "title": "Logging"
+                }
+            ],
+            "title": "Configuration"
+        }
+    }
+}

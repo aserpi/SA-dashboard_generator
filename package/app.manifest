@@ -1,0 +1,36 @@
+{
+    "info": {
+        "author": [
+            {
+                "email": "splunkapps@aserpi.it",
+                "name": "aserpi"
+            }
+        ],
+        "classification": {
+            "categories": [
+                "IT Operations",
+                "Utility"
+            ],
+            "developmentStatus": "Pre-Alpha"
+        },
+        "description": "This add-on delivers an alert action that generates and schedules dashboards from search results.",
+        "id": {
+            "name": "SA-dashboard_generator"
+        },
+        "license": {
+            "name": "MIT License",
+            "text": "./LICENSE.md",
+            "uri": "https://github.com/aserpi/SA-dashboard_generator/raw/main/LICENSE.md"
+        },
+        "title": "Dashboard Generator"
+    },
+    "schemaVersion": "2.0.0",
+    "supportedDeployments": [
+        "_standalone",
+        "_distributed",
+        "_search_head_clustering"
+    ],
+    "targetWorkloads": [
+        "_search_heads"
+    ]
+}

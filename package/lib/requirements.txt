@@ -1,0 +1,2 @@
+solnlib~=4.9
+splunktaucclib~=6.0
