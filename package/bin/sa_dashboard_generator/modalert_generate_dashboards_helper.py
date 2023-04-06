@@ -153,7 +153,6 @@ def process_event(helper, *args, **kwargs):
                 acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
             except Exception:
                 helper.log_error(f"Error when changing permissions of dashboard '{dashboard_id}.")
-                continue
 
         if template_scheduled_view_params:
             scheduled_view_id = f"_ScheduledView__{dashboard_id}"
