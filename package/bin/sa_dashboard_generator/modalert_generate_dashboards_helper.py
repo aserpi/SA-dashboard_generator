@@ -134,7 +134,11 @@ def process_event(helper, *args, **kwargs):
             dest_client.post("data/ui/views", **{"eai:data": dashboard_def, "name": dashboard_id})
         except HTTPError as e:
             if e.status == 409:  # Dashboard already exists
-                dest_client.post(dashboard_url, **{"eai:data": dashboard_def})
+                try:
+                    dest_client.post(dashboard_url, **{"eai:data": dashboard_def})
+                except Exception:
+                    helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
+                    continue
             else:
                 helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
                 continue
