@@ -40,6 +40,14 @@
                     "valueField": "title"
                 },
                 {
+                    "field": "scheduled_view_template",
+                    "label": "Scheduled view template",
+                    "labelField": "title",
+                    "search": "| rest /services/sa_dashboard_generator_scheduled_view_template",
+                    "type": "singleSelectSplunkSearch",
+                    "valueField": "title"
+                },
+                {
                     "defaultValue": 0,
                     "field": "del_prev",
                     "help": "Delete dashboards created by the previous run of the search",
@@ -74,6 +82,67 @@
         "configuration": {
             "description": "Set up your add-on",
             "tabs": [
+                {
+                    "entity": [
+                        {
+                            "field": "name",
+                            "help": "Enter a unique name for this template",
+                            "label": "Name",
+                            "required": true,
+                            "type": "text",
+                            "validators": [
+                                {
+                                    "errorMsg": "Characters of Name should start with alphanumeric and contain alphanumeric, space, dash, underscore or comma only",
+                                    "pattern": "^[0-9|a-z|A-Z][\\w\\- ,]*$",
+                                    "type": "regex"
+                                },
+                                {
+                                    "errorMsg": "Maximum length allowed for account name is 50",
+                                    "maxLength": 50,
+                                    "minLength": 1,
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        {
+                            "field": "to",
+                            "label": "To",
+                            "required": true,
+                            "type": "text"
+                        },
+                        {
+                            "field": "cron_schedule",
+                            "label": "Cron schedule",
+                            "required": true,
+                            "type": "text"
+                        },
+                        {
+                            "field": "description",
+                            "label": "Description",
+                            "type": "textarea"
+                        },
+                        {
+                            "field": "email_params",
+                            "label": "action.email* parameters",
+                            "type": "textarea"
+                        }
+                    ],
+                    "name": "scheduled_view_template",
+                    "table": {
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ],
+                        "header": [
+                            {
+                                "field": "name",
+                                "label": "Name"
+                            }
+                        ]
+                    },
+                    "title": "Scheduled View Template"
+                },
                 {
                     "entity": [
                         {

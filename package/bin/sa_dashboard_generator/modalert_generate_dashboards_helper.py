@@ -1,7 +1,9 @@
 import json
 import re
+import sys
 
 import import_declare_test  # Always put this line before third-party imports
+from solnlib.conf_manager import ConfManager, ConfManagerException, ConfStanzaNotExistException
 from solnlib.modular_input.checkpointer import KVStoreCheckpointer
 from solnlib.splunk_rest_client import SplunkRestClient
 from solnlib.utils import is_true
@@ -44,6 +46,28 @@ def _multiple_replace(pattern, repls, item):
     return pattern.sub(lambda m: repls[re.escape(m.group(0))], item)
 
 
+def _scheduled_view_template(helper, template_name):
+    conf_manager = ConfManager(helper.session_key, helper.ta_name)
+    try:
+        templates = conf_manager.get_conf("sa_dashboard_generator_scheduled_view_template")
+        template_params = templates.get(template_name)
+    except (KeyError, ConfManagerException, ConfStanzaNotExistException):
+        helper.log_error("Scheduled view template not found in configuration file.")
+        sys.exit(12)
+
+    params = {"action.email.to": template_params["to"],
+              "cron_schedule": template_params["cron_schedule"],
+              "description": template_params.get("description")}
+
+    for param in re.split(r"(?<!\\)\n", template_params.get("email_params", "")):
+        if not param:
+            continue
+        key, value = param.split("=", 1)
+        params[key.strip()] = value.lstrip().replace("\\\n", "\n")
+
+    return params
+
+
 def process_event(helper, *args, **kwargs):
     helper.log_info("Alert action generate_dashboards started.")
 
@@ -51,6 +75,7 @@ def process_event(helper, *args, **kwargs):
     del_regex = _get_param(helper, "del_regex")
     dest_app = _get_param(helper, "dest_app")
     template_dashboard_id = _get_param(helper, "template_dashboard_id")
+    scheduled_view_template = _get_param(helper, "scheduled_view_template")
     src_app = _get_param(helper, "src_app")
 
     dest_app = dest_app if dest_app else src_app
@@ -60,6 +85,8 @@ def process_event(helper, *args, **kwargs):
     template_dashboard_res = src_client.get(f"data/ui/views/{template_dashboard_id}", count=1,
                                             output_mode="json").body.read()
     template_dashboard_def = json.loads(template_dashboard_res)["entry"][0]["content"]["eai:data"]
+    template_scheduled_view_params = (_scheduled_view_template(helper, scheduled_view_template)
+                                      if scheduled_view_template else None)
 
     checkpoint = KVStoreCheckpointer(helper.action_name, helper.session_key, helper.ta_name)
     prev_dashboard_ids = set()
@@ -93,6 +120,19 @@ def process_event(helper, *args, **kwargs):
 
         dashboard_ids.append(dashboard_id)
         helper.log_info(f"Created dashboard '{dashboard_id}'.")
+
+        if template_scheduled_view_params:
+            scheduled_view_id = f"_ScheduledView__{dashboard_id}"
+            scheduled_view_params = {k: _multiple_replace(pattern, repls, v)
+                                     for k, v in template_scheduled_view_params.items()}
+            scheduled_view_params["is_scheduled"] = True
+            scheduled_view_url = f"scheduled/views/{scheduled_view_id}"
+            try:
+                dest_client.post(scheduled_view_url, **scheduled_view_params)
+                helper.log_info(f"Created scheduled view '{scheduled_view_id}'.")
+            except Exception:
+                helper.log_error(f"Error when creating scheduled view '{scheduled_view_id}'.")
+                continue
 
     if helper.search_name:
         checkpoint.update(helper.search_name, {"dashboard_ids": dashboard_ids})
