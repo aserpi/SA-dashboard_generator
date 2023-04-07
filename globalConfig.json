@@ -120,7 +120,7 @@
                                 "createSearchChoice": true,
                                 "endpointUrl": "authentication/users"
                             },
-                            "type": "multipleSelect"
+                            "type": "singleSelect"
                         },
                         {
                             "field": "perms_read",
