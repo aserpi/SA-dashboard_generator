@@ -121,8 +121,12 @@ def process_event(helper, *args, **kwargs):
     del_regex_compiled = re.compile(del_regex) if del_regex else None
     _delete_dashboards(helper, dest_client, prev_dashboard_ids, del_regex_compiled)
 
+    try:
+        events = helper.get_events()
+    except SystemExit:
+        events = []
     dashboard_ids = []
-    for event in helper.get_events():
+    for event in events:
         repls = {re.escape(fr"__{k}__"): v
                  for k, v in event.items() if not k.startswith("__mv_") and v is not None}
         pattern = re.compile("|".join(repls))
