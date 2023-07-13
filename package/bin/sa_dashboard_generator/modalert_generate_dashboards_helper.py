@@ -1,3 +1,4 @@
+import html
 import json
 import re
 import sys
@@ -127,10 +128,12 @@ def process_event(helper, *args, **kwargs):
         events = []
     dashboard_ids = []
     for event in events:
+        escaped_repls = {re.escape(fr"__{k}__"): html.escape(v)
+                         for k, v in event.items() if not k.startswith("__mv_") and v is not None}
         repls = {re.escape(fr"__{k}__"): v
                  for k, v in event.items() if not k.startswith("__mv_") and v is not None}
         pattern = re.compile("|".join(repls))
-        dashboard_def = _multiple_replace(pattern, repls, template_dashboard_def)
+        dashboard_def = _multiple_replace(pattern, escaped_repls, template_dashboard_def)
         dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
         dashboard_url = f"data/ui/views/{dashboard_id}"
 

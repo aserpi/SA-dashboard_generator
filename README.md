@@ -38,6 +38,12 @@ as respectively:
 The ID of the template dashboard should contain string replacements in order to produce a unique ID
 per search result.
 
+### Special characters
+The add-on automatically escapes HTML reserved characters (e.g., `&` and `<`) in the dashboard
+definition, therefore there is no need to use CDATA.
+Conversely, the creation of valid dashboard IDs (containing only letters, numbers, dashes, and
+underscores) is not enforced.
+
 
 ## Templates
 
