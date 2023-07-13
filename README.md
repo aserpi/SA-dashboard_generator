@@ -48,4 +48,4 @@ Permissions and scheduled view templates can be created in the add-on's configur
 In a permissions template, it is possible to specify owner and read and write permissions.
 Visibility cannot be changed due to limitations of Splunk libraries.
 A scheduled view template allows to specify description, cron schedule, and all `action.email*`
-parameters.
+parameters in the same format as `savedsearches.conf`.
