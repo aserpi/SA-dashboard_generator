@@ -14,7 +14,14 @@ from solnlib.utils import is_true
 from splunklib.binding import HTTPError
 
 
-def _delete_dashboards(helper, client, dashboard_ids, dashboards_regex=None):
+def _delete_dashboards(helper, client, checkpoint, del_prev, del_regex):
+    dashboard_ids = set()
+    if del_prev and helper.search_name:
+        prev_checkpoint = checkpoint.get(helper.search_name)
+        if prev_checkpoint:
+            dashboard_ids = set(prev_checkpoint["dashboard_ids"])
+    dashboards_regex = re.compile(del_regex) if del_regex else None
+
     dashboards_res = client.get(f"data/ui/views", count=-1, output_mode="json").body.read()
     for dashboard in json.loads(dashboards_res)["entry"]:
         title = dashboard["name"]
@@ -155,13 +162,8 @@ def process_event(helper, *args, **kwargs):
                                       if scheduled_view_template else None)
 
     checkpoint = KVStoreCheckpointer(helper.action_name, helper.session_key, helper.ta_name)
-    prev_dashboard_ids = set()
-    if del_prev and helper.search_name:
-        prev_checkpoint = checkpoint.get(helper.search_name)
-        if prev_checkpoint:
-            prev_dashboard_ids = set(prev_checkpoint["dashboard_ids"])
-    del_regex_compiled = re.compile(del_regex) if del_regex else None
-    _delete_dashboards(helper, dest_client, prev_dashboard_ids, del_regex_compiled)
+    if del_prev or del_regex:
+        _delete_dashboards(helper, dest_client, checkpoint, del_prev, del_regex)
 
     try:
         events = helper.get_events()
