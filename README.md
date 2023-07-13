@@ -3,8 +3,8 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/aserpi/SA-dashboard_generator)
 ![GitHub workflow status](https://img.shields.io/github/actions/workflow/status/aserpi/SA-dashboard_generator/release_action.yml)
 
-This add-on delivers an alert action that generates Simple XML dashboards from search results and
-optionally schedules their PDF delivery.
+This add-on delivers an alert action that generates dashboards (both Simple XML and Dashboard
+Studio) from search results and optionally schedules their PDF delivery (Simple XML only).
 
 Starting from a dashboard template, the alert action generates a new dashboard for each result.
 If a scheduled view template is selected, PDF deliveries of the dashboards are scheduled.
@@ -39,8 +39,9 @@ The ID of the template dashboard should contain string replacements in order to 
 per search result.
 
 ### Special characters
-The add-on automatically escapes HTML reserved characters (e.g., `&` and `<`) in the dashboard
-definition, therefore there is no need to use CDATA.
+The add-on automatically escapes HTML and JSON reserved characters (e.g., `&` and `"`) in the
+dashboard definition, therefore there is no need to use CDATA in Simple XML dashboards or to
+prepend backslashes in Dashboard Studio ones.
 Conversely, the creation of valid dashboard IDs (containing only letters, numbers, dashes, and
 underscores) is not enforced.
 

@@ -3,6 +3,8 @@ import json
 import re
 import sys
 
+import lxml.etree  # Splunk-provided package
+
 import import_declare_test  # Always put this line before third-party imports
 from solnlib.acl import ACLManager
 from solnlib.conf_manager import ConfManager, ConfManagerException, ConfStanzaNotExistException
@@ -30,6 +32,41 @@ def _delete_dashboards(helper, client, dashboard_ids, dashboards_regex=None):
                      or (dashboards_regex and dashboards_regex.search(pdf_view)))):
             client.delete(f"scheduled/views/{scheduled_view['name']}")
             helper.log_info(f"Deleted scheduled view '{scheduled_view['name']}'.")
+
+
+def _dashboard_studio_def(pattern, event, template_dashboard_def):
+    json_escaped_repls = {re.escape(fr"__{k}__"): v.replace('"', r'\"')
+                          for k, v in event.items() if not k.startswith("__mv_") and v is not None}
+    repls = {re.escape(fr"__{k}__"): v
+             for k, v in event.items() if not k.startswith("__mv_") and v is not None}
+    root = lxml.etree.fromstring(template_dashboard_def)
+    for child in root:
+        if child.tag in ["definition", "meta"]:
+            child.text = lxml.etree.CDATA(_multiple_replace(pattern, json_escaped_repls,
+                                                            child.text))
+        elif child.text:
+            child.text = _multiple_replace(pattern, repls, child.text)
+    return lxml.etree.tostring(root, encoding="unicode")
+
+
+def _generate_dashboard(helper, client, dashboard_id, dashboard_def, dashboard_url):
+    created = False
+    try:
+        client.post("data/ui/views", **{"eai:data": dashboard_def, "name": dashboard_id})
+        created = True
+        helper.log_info(f"Created dashboard '{dashboard_id}'.")
+    except HTTPError as e:
+        if e.status == 409:  # Dashboard already exists
+            try:
+                client.post(dashboard_url, **{"eai:data": dashboard_def})
+            except Exception:
+                helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
+        else:
+            helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
+    except Exception:
+        helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
+    finally:
+        return created
 
 
 def _get_param(helper, param, label=None):
@@ -105,9 +142,13 @@ def process_event(helper, *args, **kwargs):
     dest_client = SplunkRestClient(helper.session_key, dest_app)
     src_client = SplunkRestClient(helper.session_key, src_app)
 
-    template_dashboard_res = src_client.get(f"data/ui/views/{template_dashboard_id}", count=1,
-                                            output_mode="json").body.read()
-    template_dashboard_def = json.loads(template_dashboard_res)["entry"][0]["content"]["eai:data"]
+    template_dashboard_res = json.loads(
+        src_client.get(f"data/ui/views/{template_dashboard_id}", count=1, output_mode="json")
+                  .body
+                  .read()
+    )["entry"][0]["content"]
+    template_dashboard_def = template_dashboard_res["eai:data"]
+    template_dashboard_version = template_dashboard_res["version"]
     template_permissions_params = (_permissions_template(helper, permissions_template)
                                    if permissions_template else None)
     template_scheduled_view_params = (_scheduled_view_template(helper, scheduled_view_template)
@@ -126,64 +167,75 @@ def process_event(helper, *args, **kwargs):
         events = helper.get_events()
     except SystemExit:
         events = []
+
     dashboard_ids = []
-    for event in events:
-        escaped_repls = {re.escape(fr"__{k}__"): html.escape(v)
-                         for k, v in event.items() if not k.startswith("__mv_") and v is not None}
-        repls = {re.escape(fr"__{k}__"): v
-                 for k, v in event.items() if not k.startswith("__mv_") and v is not None}
-        pattern = re.compile("|".join(repls))
-        dashboard_def = _multiple_replace(pattern, escaped_repls, template_dashboard_def)
-        dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
-        dashboard_url = f"data/ui/views/{dashboard_id}"
 
-        try:
-            dest_client.post("data/ui/views", **{"eai:data": dashboard_def, "name": dashboard_id})
-        except HTTPError as e:
-            if e.status == 409:  # Dashboard already exists
-                try:
-                    dest_client.post(dashboard_url, **{"eai:data": dashboard_def})
-                except Exception:
-                    helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
-                    continue
-            else:
-                helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
+    if template_dashboard_version == "2":
+        for event in events:
+            repls = {re.escape(fr"__{k}__"): v
+                     for k, v in event.items() if not k.startswith("__mv_") and v is not None}
+            pattern = re.compile("|".join(repls))
+
+            dashboard_def = _dashboard_studio_def(pattern, event, template_dashboard_def)
+            dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
+            dashboard_url = f"data/ui/views/{dashboard_id}"
+
+            if not _generate_dashboard(helper, dest_client, dashboard_id, dashboard_def,
+                                       dashboard_url):
                 continue
-        except Exception:
-            helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
-            continue
-
-        dashboard_ids.append(dashboard_id)
-        helper.log_info(f"Created dashboard '{dashboard_id}'.")
-
-        permissions_params = {}
-        if acl_manager:
-            permissions_params = {k: _multiple_replace(pattern, repls, v)
-                                  for k, v in template_permissions_params.items()}
-            try:
-                acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
-            except Exception:
-                helper.log_error(f"Error when changing permissions of dashboard '{dashboard_id}.")
-
-        if template_scheduled_view_params:
-            scheduled_view_id = f"_ScheduledView__{dashboard_id}"
-            scheduled_view_params = {k: _multiple_replace(pattern, repls, v)
-                                     for k, v in template_scheduled_view_params.items()}
-            scheduled_view_params["is_scheduled"] = True
-            scheduled_view_url = f"scheduled/views/{scheduled_view_id}"
-            try:
-                dest_client.post(scheduled_view_url, **scheduled_view_params)
-                helper.log_info(f"Created scheduled view '{scheduled_view_id}'.")
-            except Exception:
-                helper.log_error(f"Error when creating scheduled view '{scheduled_view_id}'.")
-                continue
+            dashboard_ids.append(dashboard_id)
 
             if acl_manager:
+                permissions_params = {k: _multiple_replace(pattern, repls, v)
+                                      for k, v in template_permissions_params.items()}
                 try:
-                    acl_manager.update(f"{scheduled_view_url}/acl", **permissions_params)
+                    acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
                 except Exception:
-                    helper.log_error(f"Error when changing permissions of scheduled view "
-                                     f"'{scheduled_view_id}.")
+                    helper.log_error(f"Error when changing permissions of dashboard '{dashboard_id}.")
+    else:
+        for event in events:
+            escaped_repls = {re.escape(fr"__{k}__"): html.escape(v)
+                             for k, v in event.items() if not k.startswith("__mv_") and v is not None}
+            repls = {re.escape(fr"__{k}__"): json.dumps(v)
+                     for k, v in event.items() if not k.startswith("__mv_") and v is not None}
+            pattern = re.compile("|".join(repls))
+            dashboard_def = _multiple_replace(pattern, escaped_repls, template_dashboard_def)
+            dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
+            dashboard_url = f"data/ui/views/{dashboard_id}"
+
+            if not _generate_dashboard(helper, dest_client, dashboard_id, dashboard_def,
+                                       dashboard_url):
+                continue
+            dashboard_ids.append(dashboard_id)
+
+            permissions_params = {}
+            if acl_manager:
+                permissions_params = {k: _multiple_replace(pattern, repls, v)
+                                      for k, v in template_permissions_params.items()}
+                try:
+                    acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
+                except Exception:
+                    helper.log_error(f"Error when changing permissions of dashboard '{dashboard_id}.")
+
+            if template_scheduled_view_params:
+                scheduled_view_id = f"_ScheduledView__{dashboard_id}"
+                scheduled_view_params = {k: _multiple_replace(pattern, repls, v)
+                                         for k, v in template_scheduled_view_params.items()}
+                scheduled_view_params["is_scheduled"] = True
+                scheduled_view_url = f"scheduled/views/{scheduled_view_id}"
+                try:
+                    dest_client.post(scheduled_view_url, **scheduled_view_params)
+                    helper.log_info(f"Created scheduled view '{scheduled_view_id}'.")
+                except Exception:
+                    helper.log_error(f"Error when creating scheduled view '{scheduled_view_id}'.")
+                    continue
+
+                if acl_manager:
+                    try:
+                        acl_manager.update(f"{scheduled_view_url}/acl", **permissions_params)
+                    except Exception:
+                        helper.log_error(f"Error when changing permissions of scheduled view "
+                                         f"'{scheduled_view_id}.")
 
     if helper.search_name:
         checkpoint.update(helper.search_name, {"dashboard_ids": dashboard_ids})
