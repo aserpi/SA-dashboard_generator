@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 - TBD
+
+Generate Dashboard Studio dashboards.
+
 ## 1.0.3 - 2023-12-01
 
 Update dependencies to comply with new Splunk Cloud requirements.
