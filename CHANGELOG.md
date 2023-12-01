@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3 - 2023-12-01
+
+Update dependencies to comply with new Splunk Cloud requirements.
+
 ## 1.0.2 - 2023-07-13
 
 Escape reserved characters in dashboard definitions.
