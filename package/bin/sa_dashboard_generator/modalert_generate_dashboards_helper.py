@@ -153,7 +153,7 @@ def process_event(helper, *args, **kwargs):
                     acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
                 except Exception:
                     helper.log_error("Error when changing permissions of dashboard "
-                                     f"'{dashboard_id}.")
+                                     f"'{dashboard_id}'.")
     else:
         for event in events:
             escaped_repls = {re.escape(fr"__{k}__"): html.escape(v)
@@ -179,7 +179,7 @@ def process_event(helper, *args, **kwargs):
                     acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
                 except Exception:
                     helper.log_error("Error when changing permissions of dashboard "
-                                     f"'{dashboard_id}.")
+                                     f"'{dashboard_id}'.")
 
             if template_scheduled_view_params:
                 scheduled_view_id = f"_ScheduledView__{dashboard_id}"
@@ -199,7 +199,7 @@ def process_event(helper, *args, **kwargs):
                         acl_manager.update(f"{scheduled_view_url}/acl", **permissions_params)
                     except Exception:
                         helper.log_error(f"Error when changing permissions of scheduled view "
-                                         f"'{scheduled_view_id}.")
+                                         f"'{scheduled_view_id}'.")
 
     if helper.search_name:
         checkpoint.update(helper.search_name, {"dashboard_ids": dashboard_ids})
