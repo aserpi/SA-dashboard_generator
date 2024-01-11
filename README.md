@@ -1,6 +1,8 @@
 # SA-dashboard_generator: Dashboard Generator for Splunk
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/aserpi/SA-dashboard_generator)
+![Splunk Enterprise](https://img.shields.io/badge/Splunk%20Enterprise-8.0+-67a53e?logo=splunk)
+![Splunk Cloud](https://img.shields.io/badge/Splunk%20Cloud-compatible-ed0080?logo=splunk)
 ![GitHub workflow status](https://img.shields.io/github/actions/workflow/status/aserpi/SA-dashboard_generator/release_action.yml)
 
 This add-on delivers an alert action that generates dashboards (both Simple XML and Dashboard
