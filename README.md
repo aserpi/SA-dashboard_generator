@@ -5,11 +5,13 @@
 ![Splunk Cloud](https://img.shields.io/badge/Splunk%20Cloud-compatible-ed0080?logo=splunk)
 ![GitHub workflow status](https://img.shields.io/github/actions/workflow/status/aserpi/SA-dashboard_generator/release_action.yml)
 
-This add-on delivers an alert action that generates dashboards (both Simple XML and Dashboard
-Studio) from search results and optionally schedules their PDF delivery (Simple XML only).
+This add-on delivers an alert action that generates dashboards (both Classic and Dashboard Studio)
+from search results and optionally schedules their email delivery.
+Export of Dashboard Studio dashboards requires Splunk 9.3.0 or later.
 
 Starting from a dashboard template, the alert action generates a new dashboard for each result.
-If a scheduled view template is selected, PDF deliveries of the dashboards are scheduled.
+If a scheduled view template is selected, PDF (and/or PNG for Dashboard Studio) deliveries of the
+dashboards are scheduled.
 The add-on can delete dashboards created in the previous run of the saved search (not available for
 ad hoc searches) or based on their ID.
 When a dashboard is deleted, all associated scheduled views are also deleted.
