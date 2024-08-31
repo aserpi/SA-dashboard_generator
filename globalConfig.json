@@ -184,10 +184,60 @@
                             ]
                         },
                         {
-                            "field": "to",
-                            "label": "To",
+                            "field": "description",
+                            "label": "Description",
+                            "type": "textarea"
+                        },
+                        {
+                            "defaultValue": "1",
+                            "field": "dashboard_type",
+                            "label": "Dashboard type",
+                            "modifyFieldsOnValue": [
+                                {
+                                    "fieldValue": "1",
+                                    "fieldsToModify": [
+                                        {
+                                            "display": false,
+                                            "fieldId": "inline_png"
+                                        },
+                                        {
+                                            "display": false,
+                                            "fieldId": "send_pdf"
+                                        },
+                                        {
+                                            "display": false,
+                                            "fieldId": "send_png"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "fieldValue": "2",
+                                    "fieldsToModify": [
+                                        {
+                                            "display": true,
+                                            "fieldId": "send_pdf"
+                                        },
+                                        {
+                                            "display": true,
+                                            "fieldId": "send_png"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "options": {
+                                "items": [
+                                    {
+                                        "label": "Classic",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "label": "Dashboard Studio",
+                                        "value": "2"
+                                    }
+                                ]
+                            },
                             "required": true,
-                            "type": "text"
+                            "type": "radio"
                         },
                         {
                             "field": "cron_schedule",
@@ -196,9 +246,83 @@
                             "type": "text"
                         },
                         {
-                            "field": "description",
-                            "label": "Description",
+                            "field": "to",
+                            "label": "To",
+                            "required": true,
+                            "type": "text"
+                        },
+                        {
+                            "field": "subject",
+                            "label": "Subject",
+                            "type": "text"
+                        },
+                        {
+                            "field": "message",
+                            "label": "Message",
                             "type": "textarea"
+                        },
+                        {
+                            "defaultValue": true,
+                            "field": "send_pdf",
+                            "label": "Send PDF",
+                            "options": {
+                                "display": false
+                            },
+                            "type": "checkbox"
+                        },
+                        {
+                            "defaultValue": false,
+                            "field": "send_png",
+                            "label": "Send PNG",
+                            "modifyFieldsOnValue": [
+                                {
+                                    "fieldValue": false,
+                                    "fieldsToModify": [
+                                        {
+                                            "display": false,
+                                            "fieldId": "inline_png"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "fieldValue": true,
+                                    "fieldsToModify": [
+                                        {
+                                            "display": true,
+                                            "fieldId": "inline_png"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "options": {
+                                "display": false
+                            },
+                            "type": "checkbox"
+                        },
+                        {
+                            "defaultValue": "0",
+                            "field": "inline_png",
+                            "label": "PNG position",
+                            "options": {
+                                "display": false,
+                                "items": [
+                                    {
+                                        "label": "Attached",
+                                        "value": "0"
+                                    },
+                                    {
+                                        "label": "Inline",
+                                        "value": "1"
+                                    }
+                                ]
+                            },
+                            "type": "radio"
+                        },
+                        {
+                            "defaultValue": false,
+                            "field": "include_link",
+                            "label": "Include link to dashboard",
+                            "type": "checkbox"
                         },
                         {
                             "field": "email_params",
@@ -217,6 +341,10 @@
                             {
                                 "field": "name",
                                 "label": "Name"
+                            },
+                            {
+                                "field": "description",
+                                "label": "Description"
                             }
                         ]
                     },

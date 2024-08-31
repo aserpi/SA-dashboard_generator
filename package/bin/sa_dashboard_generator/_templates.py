@@ -5,6 +5,9 @@ import import_declare_test  # Always put this line before third-party imports
 from solnlib.conf_manager import ConfManager, ConfManagerException, ConfStanzaNotExistException
 
 
+_scheduled_view_keys = ["action.email.include.view_link", "action.email.inline", "action.email.message",
+                        "action.email.sendpng", "action.email.sendpdf", "action.email.subject"]
+
 def _permissions_template(helper, template_name):
     conf_manager = ConfManager(helper.session_key, helper.ta_name)
     try:
@@ -33,7 +36,13 @@ def _scheduled_view_template(helper, template_name):
         helper.log_error("Scheduled view template not found in configuration file.")
         sys.exit(12)
 
-    params = {"action.email.to": template_params["to"],
+    params = {"action.email.include.view_link": template_params["view_link"],
+              "action.email.inline": template_params["inline_png"],
+              "action.email.message": template_params["message"],
+              "action.email.sendpdf": template_params["send_pdf"],
+              "action.email.sendpng": template_params["send_png"],
+              "action.email.subject": template_params["subject"],
+              "action.email.to": template_params["to"],
               "cron_schedule": template_params["cron_schedule"],
               "description": template_params.get("description")}
 
@@ -41,6 +50,9 @@ def _scheduled_view_template(helper, template_name):
         if not param:
             continue
         key, value = param.split("=", 1)
-        params[key.strip()] = value.lstrip().replace("\\\n", "\n")
+        key = key.strip()
+        if key in _scheduled_view_keys:
+            helper.log_info(f"Found '{key}' in 'action.email*' parameters, overriding the template field.")
+        params[key] = value.lstrip().replace("\\\n", "\n")
 
     return params
