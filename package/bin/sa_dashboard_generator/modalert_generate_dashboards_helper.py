@@ -131,76 +131,57 @@ def process_event(helper, *args, **kwargs):
         events = []
 
     dashboard_ids = []
-
-    if template_dashboard_version == "2":
-        for event in events:
+    for event in events:
+        if template_dashboard_version == "2":
             repls = {re.escape(fr"__{k}__"): v
                      for k, v in event.items() if not k.startswith("__mv_") and v is not None}
             pattern = re.compile("|".join(repls))
 
             dashboard_def = _dashboard_studio_def(pattern, event, template_dashboard_def)
-            dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
-            dashboard_url = f"data/ui/views/{dashboard_id}"
-
-            if not _generate_dashboard(helper, dest_client, dashboard_id, dashboard_def,
-                                       dashboard_url):
-                continue
-            dashboard_ids.append(dashboard_id)
-
-            if acl_manager:
-                permissions_params = {k: _multiple_replace(pattern, repls, v)
-                                      for k, v in template_permissions_params.items()}
-                try:
-                    acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
-                except Exception:
-                    helper.log_error("Error when changing permissions of dashboard "
-                                     f"'{dashboard_id}'.")
-    else:
-        for event in events:
+        else:
             escaped_repls = {re.escape(fr"__{k}__"): html.escape(v)
-                             for k, v in event.items()
-                             if not k.startswith("__mv_") and v is not None}
+                             for k, v in event.items() if not k.startswith("__mv_") and v is not None}
             repls = {re.escape(fr"__{k}__"): json.dumps(v)
                      for k, v in event.items() if not k.startswith("__mv_") and v is not None}
             pattern = re.compile("|".join(repls))
             dashboard_def = _multiple_replace(pattern, escaped_repls, template_dashboard_def)
-            dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
-            dashboard_url = f"data/ui/views/{dashboard_id}"
 
-            if not _generate_dashboard(helper, dest_client, dashboard_id, dashboard_def,
-                                       dashboard_url):
+        dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
+        dashboard_url = f"data/ui/views/{dashboard_id}"
+        if not _generate_dashboard(helper, dest_client, dashboard_id, dashboard_def,
+                                   dashboard_url):
+            continue
+        dashboard_ids.append(dashboard_id)
+
+        permissions_params = {}
+        if acl_manager:
+            permissions_params = {k: _multiple_replace(pattern, repls, v)
+                                  for k, v in template_permissions_params.items()}
+            try:
+                acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
+            except Exception:
+                helper.log_error("Error when changing permissions of dashboard "
+                                 f"'{dashboard_id}'.")
+
+        if template_scheduled_view_params:
+            scheduled_view_id = f"_ScheduledView__{dashboard_id}"
+            scheduled_view_params = {k: _multiple_replace(pattern, repls, v)
+                                     for k, v in template_scheduled_view_params.items()}
+            scheduled_view_params["is_scheduled"] = True
+            scheduled_view_url = f"scheduled/views/{scheduled_view_id}"
+            try:
+                dest_client.post(scheduled_view_url, **scheduled_view_params)
+                helper.log_info(f"Created scheduled view '{scheduled_view_id}'.")
+            except Exception:
+                helper.log_error(f"Error when creating scheduled view '{scheduled_view_id}'.")
                 continue
-            dashboard_ids.append(dashboard_id)
 
-            permissions_params = {}
             if acl_manager:
-                permissions_params = {k: _multiple_replace(pattern, repls, v)
-                                      for k, v in template_permissions_params.items()}
                 try:
-                    acl_manager.update(f"{dashboard_url}/acl", **permissions_params)
+                    acl_manager.update(f"{scheduled_view_url}/acl", **permissions_params)
                 except Exception:
-                    helper.log_error("Error when changing permissions of dashboard "
-                                     f"'{dashboard_id}'.")
-
-            if template_scheduled_view_params:
-                scheduled_view_id = f"_ScheduledView__{dashboard_id}"
-                scheduled_view_params = {k: _multiple_replace(pattern, repls, v)
-                                         for k, v in template_scheduled_view_params.items()}
-                scheduled_view_params["is_scheduled"] = True
-                scheduled_view_url = f"scheduled/views/{scheduled_view_id}"
-                try:
-                    dest_client.post(scheduled_view_url, **scheduled_view_params)
-                    helper.log_info(f"Created scheduled view '{scheduled_view_id}'.")
-                except Exception:
-                    helper.log_error(f"Error when creating scheduled view '{scheduled_view_id}'.")
-                    continue
-
-                if acl_manager:
-                    try:
-                        acl_manager.update(f"{scheduled_view_url}/acl", **permissions_params)
-                    except Exception:
-                        helper.log_error(f"Error when changing permissions of scheduled view "
-                                         f"'{scheduled_view_id}'.")
+                    helper.log_error(f"Error when changing permissions of scheduled view "
+                                     f"'{scheduled_view_id}'.")
 
     if helper.search_name:
         checkpoint.update(helper.search_name, {"dashboard_ids": dashboard_ids})
