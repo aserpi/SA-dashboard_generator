@@ -66,6 +66,7 @@ def _generate_dashboard(helper, client, dashboard_id, dashboard_def, dashboard_u
         if e.status == 409:  # Dashboard already exists
             try:
                 client.post(dashboard_url, **{"eai:data": dashboard_def})
+                created = True
             except Exception:
                 helper.log_error(f"Error when creating dashboard '{dashboard_id}'.")
         else:
