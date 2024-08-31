@@ -11,7 +11,7 @@ from solnlib.splunk_rest_client import SplunkRestClient
 from solnlib.utils import is_true
 from splunklib.binding import HTTPError
 
-from _templates import _permissions_template, _scheduled_view_template
+from ._templates import _permissions_template, _scheduled_view_template
 
 
 def _delete_dashboards(helper, client, checkpoint, del_prev, del_regex):
