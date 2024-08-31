@@ -1,9 +1,11 @@
 {
     "meta": {
+        "_uccVersion": "5.49.0",
         "displayName": "Dashboard Generator",
+        "hideUCCVersion": true,
         "name": "SA-dashboard_generator",
         "restRoot": "sa_dashboard_generator",
-        "schemaVersion": "0.0.3",
+        "schemaVersion": "0.0.7",
         "version": "1.0.3"
     },
     "alerts": [
@@ -221,42 +223,7 @@
                     "title": "Scheduled View Template"
                 },
                 {
-                    "entity": [
-                        {
-                            "defaultValue": "INFO",
-                            "field": "loglevel",
-                            "label": "Log level",
-                            "options": {
-                                "autoCompleteFields": [
-                                    {
-                                        "label": "DEBUG",
-                                        "value": "DEBUG"
-                                    },
-                                    {
-                                        "label": "INFO",
-                                        "value": "INFO"
-                                    },
-                                    {
-                                        "label": "WARNING",
-                                        "value": "WARNING"
-                                    },
-                                    {
-                                        "label": "ERROR",
-                                        "value": "ERROR"
-                                    },
-                                    {
-                                        "label": "CRITICAL",
-                                        "value": "CRITICAL"
-                                    }
-                                ],
-                                "disableSearch": true
-                            },
-                            "required": true,
-                            "type": "singleSelect"
-                        }
-                    ],
-                    "name": "logging",
-                    "title": "Logging"
+                    "type": "loggingTab"
                 }
             ],
             "title": "Configuration"
