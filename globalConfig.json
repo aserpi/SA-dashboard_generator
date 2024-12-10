@@ -1,11 +1,11 @@
 {
     "meta": {
-        "_uccVersion": "5.49.0",
+        "_uccVersion": "5.55.0",
         "displayName": "Dashboard Generator",
         "hideUCCVersion": true,
         "name": "SA-dashboard_generator",
         "restRoot": "sa_dashboard_generator",
-        "schemaVersion": "0.0.7",
+        "schemaVersion": "0.0.9",
         "version": "1.0.3"
     },
     "alerts": [
