@@ -7,7 +7,7 @@
 
 This add-on delivers an alert action that generates dashboards (both Classic and Dashboard Studio)
 from search results and optionally schedules their email delivery.
-Export of Dashboard Studio dashboards requires Splunk 9.3.0 or later.
+Export of Dashboard Studio dashboards requires Splunk Cloud 9.1.2312 or Splunk Enterprise 9.3.
 
 Starting from a dashboard template, the alert action generates a new dashboard for each result.
 If a scheduled view template is selected, PDF (and/or PNG for Dashboard Studio) deliveries of the
