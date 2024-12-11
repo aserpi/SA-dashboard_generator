@@ -41,16 +41,11 @@ def _delete_dashboards(helper, client, checkpoint, del_prev, del_regex):
             helper.log_info(f"Deleted scheduled view '{scheduled_view['name']}'.")
 
 
-def _dashboard_studio_def(pattern, event, template_dashboard_def):
-    json_escaped_repls = {re.escape(fr"__{k}__"): v.replace('"', r'\"')
-                          for k, v in event.items() if not k.startswith("__mv_") and v is not None}
-    repls = {re.escape(fr"__{k}__"): v
-             for k, v in event.items() if not k.startswith("__mv_") and v is not None}
+def _dashboard_studio_def(pattern, repls, escaped_repls, template_dashboard_def):
     root = lxml.etree.fromstring(template_dashboard_def)
     for child in root:
         if child.tag in ["definition", "meta"]:
-            child.text = lxml.etree.CDATA(_multiple_replace(pattern, json_escaped_repls,
-                                                            child.text))
+            child.text = lxml.etree.CDATA(_multiple_replace(pattern, escaped_repls, child.text))
         elif child.text:
             child.text = _multiple_replace(pattern, repls, child.text)
     return lxml.etree.tostring(root, encoding="unicode")
@@ -132,22 +127,24 @@ def process_event(helper, *args, **kwargs):
 
     dashboard_ids = []
     for event in events:
-        if template_dashboard_version == "2":
-            repls = {re.escape(fr"__{k}__"): v
-                     for k, v in event.items() if not k.startswith("__mv_") and v is not None}
-            pattern = re.compile("|".join(repls))
-
-            dashboard_def = _dashboard_studio_def(pattern, event, template_dashboard_def)
-        else:
-            escaped_repls = {re.escape(fr"__{k}__"): html.escape(v)
-                             for k, v in event.items() if not k.startswith("__mv_") and v is not None}
-            repls = {re.escape(fr"__{k}__"): json.dumps(v)
-                     for k, v in event.items() if not k.startswith("__mv_") and v is not None}
-            pattern = re.compile("|".join(repls))
-            dashboard_def = _multiple_replace(pattern, escaped_repls, template_dashboard_def)
-
+        repls = {re.escape(fr"__{k}__"): v
+                 for k, v in event.items() if not k.startswith("__mv_") and v is not None}
+        pattern = re.compile("|".join(repls))
         dashboard_id = _multiple_replace(pattern, repls, template_dashboard_id)
         dashboard_url = f"data/ui/views/{dashboard_id}"
+
+        if template_dashboard_version == "2":
+            escaped_repls = {re.escape(fr"__{k}__"): v.replace('"', r'\"')
+                             for k, v in event.items()
+                             if not k.startswith("__mv_") and v is not None}
+            dashboard_def = _dashboard_studio_def(pattern, repls, escaped_repls,
+                                                  template_dashboard_def)
+        else:
+            escaped_repls = {re.escape(fr"__{k}__"): html.escape(v)
+                             for k, v in event.items()
+                             if not k.startswith("__mv_") and v is not None}
+            dashboard_def = _multiple_replace(pattern, escaped_repls, template_dashboard_def)
+
         if not _generate_dashboard(helper, dest_client, dashboard_id, dashboard_def,
                                    dashboard_url):
             continue
