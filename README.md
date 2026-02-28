@@ -39,7 +39,7 @@ as respectively:
 1. `field_a:value1a, field_b:__field_b__, field_c:`
 2. `field_a:value2a, field_b:1, field_c:__field_d__`
 
-The ID of the template dashboard should contain string replacements in order to produce a unique ID
+The ID of the template dashboard must contain string replacements in order to produce a unique ID
 per search result.
 
 ### Special characters
