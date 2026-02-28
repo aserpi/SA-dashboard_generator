@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 - 2026-02-28
+
+Update dependencies.
+
 ## 1.1.0 - 2024-12-11
 
 New features:
