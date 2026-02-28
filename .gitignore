@@ -170,6 +170,9 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
+# uv
+uv.lock
+
 
 ### Splunk ###
 output/
