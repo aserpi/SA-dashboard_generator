@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2 - 2026-04-25
+
+Update dependencies.
+
 ## 1.1.1 - 2026-02-28
 
 Update dependencies.
